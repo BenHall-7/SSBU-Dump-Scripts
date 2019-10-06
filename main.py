@@ -63,11 +63,12 @@ def dump(file):
                     os.makedirs("{0}/{1}/{2}".format(parserOutput, filename, article.findHashValue()))
             
             for hash in article.scriptsHash:
-                scriptStart = adjustr2Output(r2.cmd('s {0};pd 20'.format(hash.getAddress())))
+                
+                scriptStart = r2.cmdJ('s {0};pdj 20'.format(hash.address))
                 scriptAddress = ParseAnimcmdStart(scriptStart).address
 
                 if scriptAddress:
-                    script = adjustr2Output(r2.cmd('s {0};aF;pdf'.format(hex(scriptAddress))))
+                    script = r2.cmdJ('s {0};aF;pdfj'.format(scriptAddress))
 
                     if parseScripts:
                         try:
