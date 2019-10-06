@@ -1,6 +1,5 @@
 import re, ctypes
 from hash40 import Hash40
-from util import adjustr2Output
 
 class Constant:
     def __init__(self, index, name):

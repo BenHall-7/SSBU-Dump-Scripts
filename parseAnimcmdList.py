@@ -72,9 +72,9 @@ class ParseAnimcmdList:
         except:
             try:
                 f = add.split(':')[2].replace('_phx','').replace('_lib','').replace('_void','')
-                find = next((x for x in self.Sections if '::' in x.function and x.function.split(':')[2].split('(')[0] == f), None)
+                find = next((x for x in self.Sections if '::' in x.demname and x.demname.split(':')[2].split('(')[0] == f), None)
                 if find:
-                    v = find.num
+                    v = find.ordinal
                     register = next((x for x in self.Registers if x.register == p), None)
                     if register:
                         register.value += v
@@ -137,7 +137,7 @@ class ParseAnimcmdList:
         if register:
             self.AddArticle(register.value, b_gt)
 
-    def __init__(self, r2, text, sectionList = []):
+    def __init__(self, r2, af, sectionList = []):
         self.r2 = r2
         self.Registers = []
         self.Articles = []
@@ -146,61 +146,42 @@ class ParseAnimcmdList:
         self.ArticleScripts = []
         self.hasIssue = False
         self.Issues = []
-        self.Sections = []
         self.Subscript = None
-        ignoreLine = True
         self.Sections = sectionList
-        self.lines = []
-        self.address = []
-        for l in text.split('\r'):
-            if len(l) > 0:
-                if l[0] == '|':
-                    if ignoreLine:
-                        ignoreLine = False
-                    else:
-                        a = l.split(';')[0].strip().split("  ")
-                        line = a[len(a)-1][1:]
-                        self.lines.append(line)
-                        address = re.search("0x[0-9a-f]{8}", l)
-                        if address:
-                            address = address.group()
-                        self.address.append(address)
-
+        self.ops = af.ops
         
-        for line, address in zip(self.lines, self.address):
-            #print(line)
-
+        for op in self.ops:
             if self.Subscript:
                 self.Hashes.extend(self.Subscript.Hashes)
                 self.Subscript = None
 
-            find = next((x for x in self.Articles if address is not None and x.branch == int(address, 16)), None)
+            find = next((x for x in self.Articles if x.branch == op.offset), None)
             if find:
                 self.CurrentArticle = find.article
-            t = line.split(' ')
-            op = t[0]
+            t = op.disasm.split(' ')
+            instr = t[0]
             val = ''.join(t[1:])
-            if op == 'movz':
+            if instr == 'movz':
                 self.parse_movz(val)
-            elif op == 'movk':
+            elif instr == 'movk':
                 self.parse_movk(val)
-            elif op == 'cmp':
+            elif instr == 'cmp':
                 self.parse_cmp(val)
-            elif op == 'adrp':
+            elif instr == 'adrp':
                 self.parse_adrp(val)
-            elif op == 'add':
+            elif instr == 'add':
                 self.parse_add(val)
-            elif op == 'bl':
+            elif instr == 'bl':
                 self.parse_bl(val)
-            elif op == 'b.le':
+            elif instr == 'b.le':
                 self.parse_b_le(val)
-            elif op == 'b.gt':
+            elif instr == 'b.gt':
                 self.parse_b_gt(val)
-            elif op == 'b.eq':
+            elif instr == 'b.eq':
                 self.parse_b_eq(val)
-            elif op == 'b.ne':
+            elif instr == 'b.ne':
                 self.parse_b_ne(val)
-            elif op == 'b':
+            elif instr == 'b':
                 self.parse_b(val)
             
 

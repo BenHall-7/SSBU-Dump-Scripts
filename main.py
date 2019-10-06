@@ -5,7 +5,6 @@ from hash40 import Hash40
 from parseAnimcmdList import ParseAnimcmdList
 from parseAnimcmdStart import ParseAnimcmdStart
 from scriptparser import Parser
-from util import adjustr2Output
 
 output = "output"
 parserOutput = "parser"
@@ -26,7 +25,7 @@ def dump(file):
     if game:
         print("{0} found".format(game.demname))
 
-        af = adjustr2Output(r2.cmd('s {0};af;pdf'.format(game.vaddr)))
+        af = r2.cmdJ('s {0};af;pdfj'.format(game.vaddr))
         
         p = ParseAnimcmdList(r2, af, sections)
 
