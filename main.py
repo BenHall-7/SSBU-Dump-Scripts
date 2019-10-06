@@ -2,7 +2,6 @@ import sys, getopt, os, shutil
 import zlib
 import r2pipe
 from hash40 import Hash40
-from sectionTable import SectionTable, Section
 from parseAnimcmdList import ParseAnimcmdList
 from parseAnimcmdStart import ParseAnimcmdStart
 from scriptparser import Parser
@@ -21,13 +20,13 @@ def dump(file):
         return
 
     r2 = r2pipe.open(file)
-    sections = SectionTable(adjustr2Output(r2.cmd("is"))).sections
     r2.cmd('e anal.bb.maxsize = 0x10000')
-    game = next((x for x in sections if "lua2cpp::create_agent_fighter_animcmd_game_" in x.function and "_share_" not in x.function), None)
+    sections = r2.cmdJ("isj")
+    game = next((x for x in sections if "lua2cpp::create_agent_fighter_animcmd_game_" in x.demname and "_share_" not in x.demname), None)
     if game:
-        print("{0} found".format(game.function))
+        print("{0} found".format(game.demname))
 
-        af = adjustr2Output(r2.cmd('s {0};af;pdf'.format(game.getAddress())))
+        af = adjustr2Output(r2.cmd('s {0};af;pdf'.format(game.vaddr)))
         
         p = ParseAnimcmdList(r2, af, sections)
 
