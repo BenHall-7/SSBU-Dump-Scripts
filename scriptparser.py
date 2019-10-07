@@ -614,7 +614,7 @@ class SubScript:
 
     def Parse(self):
         for op in self.script.ops:
-            t = op.opcode.split(' ')
+            t = op.disasm.split(' ')
             instr = t[0]
             val = ''.join(t[1:])
             self.CurrentAddress = op.offset

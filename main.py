@@ -20,6 +20,7 @@ def dump(file):
 
     r2 = r2pipe.open(file)
     r2.cmd('e anal.bb.maxsize = 0x10000')
+    r2.cmd('e anal.vars = false')
     sections = r2.cmdJ("isj")
     game = next((x for x in sections if "lua2cpp::create_agent_fighter_animcmd_game_" in x.demname and "_share_" not in x.demname), None)
     if game:
