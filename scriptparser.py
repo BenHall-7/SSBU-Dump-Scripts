@@ -156,10 +156,7 @@ class SubScript:
         self.script = script
         self.blocks = []
 
-        ignoreLine = True
         self.Sections = sectionList
-        self.lines = []
-        self.address = []
 
         self.Registers = []
         self.Blocks = []
@@ -173,28 +170,6 @@ class SubScript:
         self.CurrentValue = 0
 
         self.CurrentAddress = 0
-
-        for l in self.script.split('\r'):
-            if len(l) > 0:
-                if l[0] == '|' or l[0] == '\\':
-                    if ignoreLine:
-                        ignoreLine = False
-                    else:
-                        a = l.split(';')[0].strip().split("  ")
-                        hasValue = None
-                        for c in l.split(';')[1:]:
-                            t = re.search(" 0x[0-9a-f]+ ", c)
-                            if t:
-                                hasValue = t.group()
-                        line = a[len(a)-1][1:]
-                        testStr = re.search("str\.([a-z]|[A-Z]|[0-9]|_)+", line) #Replace string for hex value
-                        if testStr:
-                            line = line.replace(testStr.group(), hasValue)
-                        self.lines.append(line)
-                        address = re.search("0x[0-9a-f]{8}", l)
-                        if address:
-                            address = address.group()
-                        self.address.append(address)
 
     def parse_movz(self, movz):
         p = movz.split(',')[0]
@@ -367,7 +342,7 @@ class SubScript:
             if 'fcn.' in bl:
                 bl = bl.replace('fcn.', '0x')
             if self.r2:
-                script = adjustr2Output(self.r2.cmd('s {0};aF;pdf'.format(hex(int(bl,16)))))
+                script = self.r2.cmdJ('s {0};aF;pdfj'.format(hex(int(bl,16))))
                 self.SubScript = SubScript(self.r2, script, self.Sections)
         elif bl == 'method.lib::L2CValue.L2CValue_int':
             if isinstance(self.CurrentValue,Value):
@@ -562,11 +537,11 @@ class SubScript:
             if register:
                 register.value += v
                 if self.r2:
-                    v = adjustr2Output(self.r2.cmd('s {0};pf {1}'.format(register.value, format)))
+                    v = self.r2.cmd('s {0};pfq {1}'.format(register.value, format))
                     if format == 'f':
-                        v = float(v.split('=')[1].strip())
+                        v = float(v)
                     else:
-                        v = ctypes.c_int32(int(v.split('=')[1].strip())).value
+                        v = ctypes.c_int32(int(v)).value
                     register2 = next((x for x in self.Registers if x.register == p or x.register == p.replace('x', 'w')), None)
                     if register2:
                         register2.value = v
@@ -578,11 +553,11 @@ class SubScript:
                 if register:
                     register.value = v
                     if self.r2:
-                        v = adjustr2Output(self.r2.cmd('s {0};pf {1}'.format(register.value, format)))
+                        v = self.r2.cmd('s {0};pfq {1}'.format(register.value, format))
                         if format == 'f':
-                            v = float(v.split('=')[1].strip())
+                            v = float(v)
                         else:
-                            v = ctypes.c_int32(int(v.split('=')[1].strip())).value
+                            v = ctypes.c_int32(int(v)).value
                         register2 = next((x for x in self.Registers if x.register == p or x.register == p.replace('x', 'w')), None)
                         if register2:
                             register2.value = v
@@ -591,12 +566,12 @@ class SubScript:
                         self.CurrentValue = v
                 else:
                     if self.r2:
-                        v = adjustr2Output(self.r2.cmd('s {0};pf {1}'.format(v, format)))
+                        v = self.r2.cmd('s {0};pfq {1}'.format(v, format))
                         if format == 'f':
-                            self.CurrentValue = float(v.split('=')[1].strip())
+                            self.CurrentValue = float(v)
                             self.Registers.append(Register(p, self.CurrentValue))
                         else:
-                            self.CurrentValue = ctypes.c_int32(int(v.split('=')[1].strip())).value
+                            self.CurrentValue = ctypes.c_int32(int(v)).value
                             self.Registers.append(Register(p, self.CurrentValue))
 
     def parse_orr(self, orr):
@@ -638,12 +613,11 @@ class SubScript:
         self.CurrentValue = v
 
     def Parse(self):
-        for line, address in zip(self.lines, self.address):
-            #print(line)
-            t = line.split(' ')
-            op = t[0]
+        for op in self.script.ops:
+            t = op.opcode.split(' ')
+            instr = t[0]
             val = ''.join(t[1:])
-            self.CurrentAddress = address
+            self.CurrentAddress = op.offset
 
             if self.SubScript:
                 self.SubScript.Values = self.Values
@@ -664,7 +638,7 @@ class SubScript:
                 branch = self.CurrentBlock.branch
                 if self.CurrentBlock.ElseBlock:
                     branch = self.CurrentBlock.ElseBlock.branch
-                if int(address,16) == branch:
+                if op.offset == branch:
                     if len(self.Blocks) == 0:
                         self.Functions.append(self.CurrentBlock)
                         self.CurrentBlock = None
@@ -679,52 +653,52 @@ class SubScript:
                             branch = self.CurrentBlock.branch
                             if self.CurrentBlock.ElseBlock:
                                 branch = self.CurrentBlock.ElseBlock.branch
-                            if int(address,16) < branch:
+                            if op.offset < branch:
                                 break
                         if len(self.Blocks) == 0:
                             self.Functions.append(self.CurrentBlock)
                             self.CurrentBlock = None
                         
 
-            if op == 'movz':
+            if instr == 'movz':
                 self.parse_movz(val)
-            elif op == 'movk':
+            elif instr == 'movk':
                 self.parse_movk(val)
-            elif op == 'mov':
+            elif instr == 'mov':
                 self.parse_mov(val)
-            elif op == 'movn':
+            elif instr == 'movn':
                 self.parse_movn(val)
-            elif op == 'cmp':
+            elif instr == 'cmp':
                 self.parse_cmp(val)
-            elif op == 'adrp':
+            elif instr == 'adrp':
                 self.parse_adrp(val)
-            elif op == 'ldr':
+            elif instr == 'ldr':
                 self.parse_ldr(val)
-            elif op == 'add':
+            elif instr == 'add':
                 self.parse_add(val)
-            elif op == 'bl':
+            elif instr == 'bl':
                 self.parse_bl(val)
-            elif op == 'b.le':
+            elif instr == 'b.le':
                 self.parse_b_le(val)
-            elif op == 'b.gt':
+            elif instr == 'b.gt':
                 self.parse_b_gt(val)
-            elif op == 'b.eq':
+            elif instr == 'b.eq':
                 self.parse_b_eq(val)
-            elif op == 'b.ne':
+            elif instr == 'b.ne':
                 self.parse_b_ne(val)
-            elif op == 'b':
+            elif instr == 'b':
                 self.parse_b(val)
-            elif op == 'tbz':
+            elif instr == 'tbz':
                 self.parse_tbz(val)
-            elif op == 'fmov':
+            elif instr == 'fmov':
                 self.parse_fmov(val)
-            elif op == 'orr':
+            elif instr == 'orr':
                 self.parse_orr(val)
-            elif op == 'and':
+            elif instr == 'and':
                 self.parse_and(val)
-            elif op == 'b.lo':
+            elif instr == 'b.lo':
                 self.parse_b_lo(val)
-            elif op == 'br':
+            elif instr == 'br':
                 self.parse_br(val)
     
     def print(self,depth):
