@@ -9,20 +9,22 @@ class NameHash40:
 HashList = []
 ArticleList = []
 
-namesFile = open('scriptNames.txt', 'r')
-HashList.append(NameHash40("game_".strip(), Hash40.CreateFromString("game_".lower().strip()))) #Share animation
-for s in namesFile:
-    if(s != "\n"):
-        s = "game_" + s
-        HashList.append(NameHash40(s.strip(), Hash40.CreateFromString(s.lower().strip())))
-        if 'Special' in s or 'Final' in s:
-                HashList.append(NameHash40(s.replace('Special','SpecialAir').replace('Final','FinalAir').strip(), Hash40.CreateFromString(s.replace('Special','SpecialAir').replace('Final','FinalAir').lower().strip())))
+def loadHashes(kind):
+    with open('scriptNames.txt', 'r') as f:
+        HashList.append(NameHash40(kind, Hash40.CreateFromString(kind.lower()))) #Share animation
+        for s in f:
+            if(s != "\n"):
+                s = (kind + s).strip()
+                print(s)
+                HashList.append(NameHash40(s, Hash40.CreateFromString(s.lower())))
+                if 'Special' in s or 'Final' in s:
+                    HashList.append(NameHash40(s.replace('Special','SpecialAir').replace('Final','FinalAir').strip(), Hash40.CreateFromString(s.replace('Special','SpecialAir').replace('Final','FinalAir').lower().strip())))
 
 articlesFile = open('articles.txt','r')
 for s in articlesFile:
     if(s != "\n"):
-        s = s.replace("WEAPON_KIND_", "")
-        ArticleList.append(NameHash40(s.lower().strip(), Hash40.CreateFromString(s.lower().strip())))
+        s = s.replace("WEAPON_KIND_", "").strip()
+        ArticleList.append(NameHash40(s.lower(), Hash40.CreateFromString(s.lower())))
 
 
 class Article: # Character / Weapon

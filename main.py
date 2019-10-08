@@ -1,6 +1,7 @@
 import sys, getopt, os, shutil
 import zlib
 import r2pipe
+from article import loadHashes
 from hash40 import Hash40
 from parseAnimcmdList import ParseAnimcmdList
 from parseAnimcmdStart import ParseAnimcmdStart
@@ -8,12 +9,16 @@ from scriptparser import Parser
 
 output = "output"
 parserOutput = "parser"
+scriptCategory = "game"
 parseScripts = False
 
+categories = ['game', 'effect', 'sound', 'expression']
+
 def dump(file):
-    global output, parseScripts, parserOutput
+    global output, parserOutput, scriptCategory, parseScripts
     print("Opening file {0}".format(file))
     filename = os.path.split(os.path.splitext(file)[0])[-1]
+    loadHashes(scriptCategory + "_")
 
     if 'common' in filename or 'item' in filename:
         return
@@ -22,7 +27,7 @@ def dump(file):
     r2.cmd('e anal.bb.maxsize = 0x10000')
     r2.cmd('e anal.vars = false')
     sections = r2.cmdJ("isj")
-    game = next((x for x in sections if "lua2cpp::create_agent_fighter_animcmd_game_" in x.demname and "_share_" not in x.demname), None)
+    game = next((x for x in sections if "lua2cpp::create_agent_fighter_animcmd_{0}_".format(scriptCategory) in x.demname and "_share_" not in x.demname), None)
     if game:
         print("{0} found".format(game.demname))
 
@@ -108,9 +113,9 @@ def Parse(file):
     p = Parser(None, t)
 
 def start(path, argv):
-    global output, parseScripts
+    global output, parseScripts, categories, scriptCategory
     try:
-      opts, args = getopt.getopt(argv,"o:p",["output="])
+      opts, args = getopt.getopt(argv,"o:pc:",["output=", "category="])
     except getopt.GetoptError:
         print('main.py path')
         print("file path: dump scripts from elf file")
@@ -121,6 +126,13 @@ def start(path, argv):
             output = arg
         if opt == '-p':
             parseScripts = True
+        if opt == '-c':
+            if arg in categories:
+                scriptCategory = arg
+            else:
+                print("{0} is not a valid script category".format(arg))
+                print("categories: {0}".format(categories))
+                sys.exit(2)
 
     run = False
 
