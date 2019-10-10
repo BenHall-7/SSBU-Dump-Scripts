@@ -256,7 +256,7 @@ class SubScript:
         address = int(b_lo,16)
         index = 0
         for function in self.Functions:
-            if int(function.address,16) > address:
+            if function.address > address:
                 break
             index += 1
         l = self.Functions[index:]
@@ -342,7 +342,7 @@ class SubScript:
             if 'fcn.' in bl:
                 bl = bl.replace('fcn.', '0x')
             if self.r2:
-                script = self.r2.cmdJ('s {0};aF;pdfj'.format(hex(int(bl,16))))
+                script = self.r2.cmdJ('s {0};af;pdfj'.format(hex(int(bl,16))))
                 self.SubScript = SubScript(self.r2, script, self.Sections)
         elif bl == 'method.lib::L2CValue.L2CValue_int':
             if isinstance(self.CurrentValue,Value):
@@ -614,7 +614,7 @@ class SubScript:
 
     def Parse(self):
         for op in self.script.ops:
-            t = op.disasm.split(' ')
+            t = op.opcode.split(' ')
             instr = t[0]
             val = ''.join(t[1:])
             self.CurrentAddress = op.offset
@@ -677,6 +677,8 @@ class SubScript:
             elif instr == 'add':
                 self.parse_add(val)
             elif instr == 'bl':
+                #use op.disasm to get function name
+                val = op.disasm.split(' ')[-1]
                 self.parse_bl(val)
             elif instr == 'b.le':
                 self.parse_b_le(val)

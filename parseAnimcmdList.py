@@ -121,7 +121,7 @@ class ParseAnimcmdList:
             else:
                 self.hasIssue = False
         elif "0x" in bl:
-            text = self.r2.cmd("s {0};af;pdf".format(bl))
+            text = self.r2.cmdJ("s {0};af;pdfj".format(bl))
             self.Subscript = ParseAnimcmdList(self.r2, text, self.Sections)
 
     def parse_b_le(self, b_le):
@@ -158,7 +158,7 @@ class ParseAnimcmdList:
             find = next((x for x in self.Articles if x.branch == op.offset), None)
             if find:
                 self.CurrentArticle = find.article
-            t = op.disasm.split(' ')
+            t = op.opcode.split(' ')
             instr = t[0]
             val = ''.join(t[1:])
             if instr == 'movz':
@@ -172,6 +172,8 @@ class ParseAnimcmdList:
             elif instr == 'add':
                 self.parse_add(val)
             elif instr == 'bl':
+                #use op.disasm to get function name
+                val = op.disasm.split(' ')[-1]
                 self.parse_bl(val)
             elif instr == 'b.le':
                 self.parse_b_le(val)

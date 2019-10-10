@@ -15,7 +15,6 @@ def loadHashes(kind):
         for s in f:
             if(s != "\n"):
                 s = (kind + s).strip()
-                print(s)
                 HashList.append(NameHash40(s, Hash40.CreateFromString(s.lower())))
                 if 'Special' in s or 'Final' in s:
                     HashList.append(NameHash40(s.replace('Special','SpecialAir').replace('Final','FinalAir').strip(), Hash40.CreateFromString(s.replace('Special','SpecialAir').replace('Final','FinalAir').lower().strip())))
