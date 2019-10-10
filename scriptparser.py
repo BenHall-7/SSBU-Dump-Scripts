@@ -104,7 +104,7 @@ class Function:
         return s
 
     def printCondition(self):
-        if self.function == 'method.lib::L2CValue.operatorbool__const':
+        if self.function == 'lib::L2CValue.operatorbool()const':
             s = ''
             for param in self.params:
                 s += '{0}, '.format(param.print(0))
@@ -302,7 +302,7 @@ class SubScript:
                 None #sp
         
     def parse_b(self, b):
-        if b == 'method.app::sv_animcmd.ATTACK_lua_State' or b == 'method.app::sv_animcmd.ATTACK_ABS_lua_State' or b == 'method.app::sv_animcmd.SEARCH_lua_State':
+        if b == 'app::sv_animcmd::ATTACK(lua_State*)' or b == 'app::sv_animcmd::ATTACK_ABS(lua_State*)' or b == 'app::sv_animcmd::SEARCH(lua_State*)':
             if self.CurrentBlock:
                 if self.CurrentBlock.ElseBlock:
                     self.CurrentBlock.ElseBlock.Functions.append(Function(b, self.PrevStack, self.CurrentAddress))
@@ -344,7 +344,7 @@ class SubScript:
             if self.r2:
                 script = self.r2.cmdJ('s {0};af;pdfj'.format(hex(int(bl,16))))
                 self.SubScript = SubScript(self.r2, script, self.Sections)
-        elif bl == 'method.lib::L2CValue.L2CValue_int':
+        elif bl == 'lib::L2CValue::L2CValue(int)':
             if isinstance(self.CurrentValue,Value):
                 self.CurrentValue = self.CurrentValue.value
             if self.isConstant:
@@ -354,22 +354,22 @@ class SubScript:
             else:
                 self.Values.append(Value(self.CurrentValue, 'int'))
                 self.CurrentValue = 0
-        elif bl == 'method.lib::L2CValue.L2CValue_float':
+        elif bl == 'lib::L2CValue::L2CValue(float)':
             if isinstance(self.CurrentValue,Value):
                 self.CurrentValue = self.CurrentValue.value
             self.Values.append(Value(self.CurrentValue, 'float'))
             self.CurrentValue = 0
-        elif bl == 'method.lib::L2CValue.L2CValue_bool':
+        elif bl == 'lib::L2CValue::L2CValue(bool)':
             if isinstance(self.CurrentValue,Value):
                 self.CurrentValue = self.CurrentValue.value
             self.Values.append(Value(self.CurrentValue, 'bool'))
             self.CurrentValue = 0
-        elif bl == 'method.lib::L2CValue.L2CValue_phx::Hash40':
+        elif bl == 'lib::L2CValue::L2CValue(phx::Hash40)':
             register = next((x for x in self.Registers if x.register == "x1"), None)
             self.Values.append(Value(Hash40(hex(register.value)), 'hash40'))
-        elif bl == 'method.app::sv_animcmd.is_excute_lua_State':
-            self.Values.append(Value('method.app::sv_animcmd.is_excute_lua_State', 'function'))
-        elif bl == 'method.lib::L2CValue.operatorbool__const':
+        elif bl == 'app::sv_animcmd::is_excute(lua_State*)':
+            self.Values.append(Value('app::sv_animcmd::is_excute(lua_State*)', 'function'))
+        elif bl == 'lib::L2CValue::operatorbool()const':
             if self.CurrentBlock:
                 if self.CurrentBlock.ElseBlock:
                     self.CurrentBlock.ElseBlock.Functions.append(Function(bl, self.Values, self.CurrentAddress))
@@ -379,34 +379,34 @@ class SubScript:
                 self.Functions.append(Function(bl, self.Values, self.CurrentAddress))
             self.Values = []
             self.CurrentValue = 0
-        elif bl == 'method.app::lua_bind.WorkModule__is_flag_impl_app::BattleObjectModuleAccessor__int':
+        elif bl == 'app::lua_bind::WorkModule__is_flag_impl(app::BattleObjectModuleAccessor*,int)':
             l = self.Values
             self.Values = []
             self.Values.append(Value(Function(bl, l, self.CurrentAddress), 'function'))
-        elif bl == 'method.lib::L2CValue.L2CValue_long':
+        elif bl == 'lib::L2CValue::L2CValue(long)':
             self.CurrentValue = 0
-        elif bl == 'method.app::lua_bind.WorkModule__get_int64_impl_app::BattleObjectModuleAccessor__int':
+        elif bl == 'app::lua_bind::WorkModule__get_int64_impl(app::BattleObjectModuleAccessor*,int)':
             self.CurrentValue = 0
-        elif bl == 'method.lib::L2CAgent.pop_lua_stack_int':
+        elif bl == 'lib::L2CAgent::pop_lua_stack(int)':
             #self.Values.append(Value(self.CurrentValue, 'int'))
             #self.CurrentValue = 0
             None
-        elif bl == 'method.lib::L2CAgent.clear_lua_stack':
+        elif bl == 'lib::L2CAgent::clear_lua_stack()':
             self.PrevStack = self.Values
             self.Values = []
-        elif bl == 'method.lib::L2CValue.as_integer__const':
+        elif bl == 'lib::L2CValue::as_integer()const':
             self.CurrentValue = Value(self.CurrentValue, 'int')
-        elif bl == 'method.lib::L2CValue.as_number__const':
+        elif bl == 'lib::L2CValue::as_number()const':
             self.CurrentValue = Value(self.CurrentValue, 'float')
-        elif bl == 'method.lib::L2CValue.as_bool__const':
+        elif bl == 'lib::L2CValue::as_bool()const':
             self.CurrentValue = Value(self.CurrentValue, 'bool')
-        elif bl == 'method.lib::L2CValue.L2CValue_long' or bl == 'method.lib::L2CValue.L2CValue_long':
+        elif bl == 'lib::L2CValue::L2CValue(long)':
             #self.CurrentValue = Value(self.CurrentValue, 'long')
             None
-        elif bl == 'method.lib::L2CValue._L2CValue' or bl == 'method.lib::L2CAgent.push_lua_stack_lib::L2CValueconst':
+        elif bl == 'lib::L2CValue::~L2CValue()' or bl == 'lib::L2CAgent::push_lua_stack(lib::L2CValueconst&)':
             #Ignore
             None
-        #elif bl == 'method.app::sv_animcmd.frame_lua_State__float' or bl == 'method.app::sv_animcmd.wait_lua_State__float':
+        #elif bl == 'app::sv_animcmd::frame(lua_State*,float)' or bl == 'app::sv_animcmd::wait(lua_State*,float)':
         #    if self.CurrentBlock:
         #        self.CurrentBlock.Functions.append(Function(bl, self.PrevStack, self.CurrentAddress))
         #    else:
