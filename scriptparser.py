@@ -1,5 +1,6 @@
 import re, ctypes
 from hash40 import Hash40
+from methodInfo import methodInfo
 
 class Constant:
     def __init__(self, index, name):
@@ -613,6 +614,7 @@ class SubScript:
         self.CurrentValue = v
 
     def Parse(self):
+        global methodInfo
         for op in self.script.ops:
             t = op.opcode.split(' ')
             instr = t[0]
@@ -677,9 +679,9 @@ class SubScript:
             elif instr == 'add':
                 self.parse_add(val)
             elif instr == 'bl':
-                #use op.disasm to get function name
-                val = op.disasm.split(' ')[-1]
-                self.parse_bl(val)
+                addr = int(val, 0)
+                m = methodInfo.get(addr, val)
+                self.parse_bl(m)
             elif instr == 'b.le':
                 self.parse_b_le(val)
             elif instr == 'b.gt':

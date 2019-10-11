@@ -6,6 +6,7 @@ from hash40 import Hash40
 from parseAnimcmdList import ParseAnimcmdList
 from parseAnimcmdStart import ParseAnimcmdStart
 from scriptparser import Parser
+from methodInfo import methodInfo, loadMethodInfo
 
 output = "output"
 parserOutput = "parser"
@@ -15,7 +16,7 @@ parseScripts = False
 categories = ['game', 'effect', 'sound', 'expression']
 
 def dump(file):
-    global output, parserOutput, scriptCategory, parseScripts
+    global output, parserOutput, scriptCategory, parseScripts, methodInfo
     print("Opening file {0}".format(file))
     filename = os.path.split(os.path.splitext(file)[0])[-1]
     loadHashes(scriptCategory + "_")
@@ -27,6 +28,7 @@ def dump(file):
     r2.cmd('e anal.bb.maxsize = 0x10000')
     r2.cmd('e anal.vars = false')
     sections = r2.cmdJ("isj")
+    loadMethodInfo(sections)
     game = next((x for x in sections if "lua2cpp::create_agent_fighter_animcmd_{0}_".format(scriptCategory) in x.demname and "_share_" not in x.demname), None)
     if game:
         print("{0} found".format(game.demname))
