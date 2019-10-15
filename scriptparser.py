@@ -404,7 +404,7 @@ class SubScript:
         elif bl == 'lib::L2CValue::L2CValue(long)':
             #self.CurrentValue = Value(self.CurrentValue, 'long')
             None
-        elif bl == 'lib::L2CValue::~L2CValue()' or bl == 'lib::L2CAgent::push_lua_stack(lib::L2CValueconst&)':
+        elif bl == 'lib::L2CValue::~L2CValue()' or bl == 'lib::L2CAgent::push_lua_stack(lib::L2CValue const&)':
             #Ignore
             None
         #elif bl == 'app::sv_animcmd::frame(lua_State*,float)' or bl == 'app::sv_animcmd::wait(lua_State*,float)':
@@ -691,7 +691,9 @@ class SubScript:
             elif instr == 'b.ne':
                 self.parse_b_ne(val)
             elif instr == 'b':
-                self.parse_b(val)
+                addr = int(val, 0)
+                m = methodInfo.get(addr, val)
+                self.parse_b(m)
             elif instr == 'tbz':
                 self.parse_tbz(val)
             elif instr == 'fmov':
