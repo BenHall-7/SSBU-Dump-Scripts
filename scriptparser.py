@@ -303,21 +303,18 @@ class SubScript:
                 None #sp
         
     def parse_b(self, b):
-        if b == 'app::sv_animcmd::ATTACK(lua_State*)' or b == 'app::sv_animcmd::ATTACK_ABS(lua_State*)' or b == 'app::sv_animcmd::SEARCH(lua_State*)':
+        if type(b) is int:
+            if self.CurrentBlock:
+                self.CurrentBlock.ElseBlock = ElseBlock(b, self.CurrentAddress)
+        elif b.demname == 'app::sv_animcmd::ATTACK(lua_State*)' or b.demname == 'app::sv_animcmd::ATTACK_ABS(lua_State*)' or b.demname == 'app::sv_animcmd::SEARCH(lua_State*)':
             if self.CurrentBlock:
                 if self.CurrentBlock.ElseBlock:
-                    self.CurrentBlock.ElseBlock.Functions.append(Function(b, self.PrevStack, self.CurrentAddress))
+                    self.CurrentBlock.ElseBlock.Functions.append(Function(b.name, self.PrevStack, self.CurrentAddress))
                 else:
-                    self.CurrentBlock.Functions.append(Function(b, self.PrevStack, self.CurrentAddress))
+                    self.CurrentBlock.Functions.append(Function(b.name, self.PrevStack, self.CurrentAddress))
             else:
-                self.Functions.append(Function(b, self.PrevStack, self.CurrentAddress))
+                self.Functions.append(Function(b.name, self.PrevStack, self.CurrentAddress))
             self.PrevStack = []
-        elif '0x' in b:
-            if self.CurrentBlock:
-                self.CurrentBlock.ElseBlock = ElseBlock(int(b, 16), self.CurrentAddress)
-        else:
-            #print('Function on b: {0}'.format(b))
-            None
 
     def parse_br(self, br):
         register = next((x for x in self.Registers if x.register == br), None)
@@ -338,14 +335,11 @@ class SubScript:
         None
 
     def parse_bl(self, bl):
-        if '0x' in bl or 'fcn.' in bl:
-            #Add subscript
-            if 'fcn.' in bl:
-                bl = bl.replace('fcn.', '0x')
+        if type(bl) is int:
             if self.r2:
-                script = self.r2.cmdJ('s {0};af;pdfj'.format(hex(int(bl,16))))
+                script = self.r2.cmdJ('s {0};af;pdfj'.format(bl))
                 self.SubScript = SubScript(self.r2, script, self.Sections)
-        elif bl == 'lib::L2CValue::L2CValue(int)':
+        elif bl.demname == 'lib::L2CValue::L2CValue(int)':
             if isinstance(self.CurrentValue,Value):
                 self.CurrentValue = self.CurrentValue.value
             if self.isConstant:
@@ -355,59 +349,59 @@ class SubScript:
             else:
                 self.Values.append(Value(self.CurrentValue, 'int'))
                 self.CurrentValue = 0
-        elif bl == 'lib::L2CValue::L2CValue(float)':
+        elif bl.demname == 'lib::L2CValue::L2CValue(float)':
             if isinstance(self.CurrentValue,Value):
                 self.CurrentValue = self.CurrentValue.value
             self.Values.append(Value(self.CurrentValue, 'float'))
             self.CurrentValue = 0
-        elif bl == 'lib::L2CValue::L2CValue(bool)':
+        elif bl.demname == 'lib::L2CValue::L2CValue(bool)':
             if isinstance(self.CurrentValue,Value):
                 self.CurrentValue = self.CurrentValue.value
             self.Values.append(Value(self.CurrentValue, 'bool'))
             self.CurrentValue = 0
-        elif bl == 'lib::L2CValue::L2CValue(phx::Hash40)':
+        elif bl.demname == 'lib::L2CValue::L2CValue(phx::Hash40)':
             register = next((x for x in self.Registers if x.register == "x1"), None)
             self.Values.append(Value(Hash40(hex(register.value)), 'hash40'))
-        elif bl == 'app::sv_animcmd::is_excute(lua_State*)':
+        elif bl.demname == 'app::sv_animcmd::is_excute(lua_State*)':
             self.Values.append(Value('app::sv_animcmd::is_excute(lua_State*)', 'function'))
-        elif bl == 'lib::L2CValue::operatorbool()const':
+        elif bl.demname == 'lib::L2CValue::operatorbool()const':
             if self.CurrentBlock:
                 if self.CurrentBlock.ElseBlock:
-                    self.CurrentBlock.ElseBlock.Functions.append(Function(bl, self.Values, self.CurrentAddress))
+                    self.CurrentBlock.ElseBlock.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
                 else:
-                    self.CurrentBlock.Functions.append(Function(bl, self.Values, self.CurrentAddress))
+                    self.CurrentBlock.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
             else:
-                self.Functions.append(Function(bl, self.Values, self.CurrentAddress))
+                self.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
             self.Values = []
             self.CurrentValue = 0
-        elif bl == 'app::lua_bind::WorkModule__is_flag_impl(app::BattleObjectModuleAccessor*,int)':
+        elif bl.demname == 'app::lua_bind::WorkModule__is_flag_impl(app::BattleObjectModuleAccessor*,int)':
             l = self.Values
             self.Values = []
             self.Values.append(Value(Function(bl, l, self.CurrentAddress), 'function'))
-        elif bl == 'lib::L2CValue::L2CValue(long)':
+        elif bl.demname == 'lib::L2CValue::L2CValue(long)':
             self.CurrentValue = 0
-        elif bl == 'app::lua_bind::WorkModule__get_int64_impl(app::BattleObjectModuleAccessor*,int)':
+        elif bl.demname == 'app::lua_bind::WorkModule__get_int64_impl(app::BattleObjectModuleAccessor*,int)':
             self.CurrentValue = 0
-        elif bl == 'lib::L2CAgent::pop_lua_stack(int)':
+        elif bl.demname == 'lib::L2CAgent::pop_lua_stack(int)':
             #self.Values.append(Value(self.CurrentValue, 'int'))
             #self.CurrentValue = 0
             None
-        elif bl == 'lib::L2CAgent::clear_lua_stack()':
+        elif bl.demname == 'lib::L2CAgent::clear_lua_stack()':
             self.PrevStack = self.Values
             self.Values = []
-        elif bl == 'lib::L2CValue::as_integer()const':
+        elif bl.demname == 'lib::L2CValue::as_integer()const':
             self.CurrentValue = Value(self.CurrentValue, 'int')
-        elif bl == 'lib::L2CValue::as_number()const':
+        elif bl.demname == 'lib::L2CValue::as_number()const':
             self.CurrentValue = Value(self.CurrentValue, 'float')
-        elif bl == 'lib::L2CValue::as_bool()const':
+        elif bl.demname == 'lib::L2CValue::as_bool()const':
             self.CurrentValue = Value(self.CurrentValue, 'bool')
-        elif bl == 'lib::L2CValue::L2CValue(long)':
+        elif bl.demname == 'lib::L2CValue::L2CValue(long)':
             #self.CurrentValue = Value(self.CurrentValue, 'long')
             None
-        elif bl == 'lib::L2CValue::~L2CValue()' or bl == 'lib::L2CAgent::push_lua_stack(lib::L2CValue const&)':
+        elif bl.demname == 'lib::L2CValue::~L2CValue()' or bl.demname == 'lib::L2CAgent::push_lua_stack(lib::L2CValue const&)':
             #Ignore
             None
-        #elif bl == 'app::sv_animcmd::frame(lua_State*,float)' or bl == 'app::sv_animcmd::wait(lua_State*,float)':
+        #elif bl.demname == 'app::sv_animcmd::frame(lua_State*,float)' or bl.demname == 'app::sv_animcmd::wait(lua_State*,float)':
         #    if self.CurrentBlock:
         #        self.CurrentBlock.Functions.append(Function(bl, self.PrevStack, self.CurrentAddress))
         #    else:
@@ -417,20 +411,20 @@ class SubScript:
             if len(self.Values) > 0:
                 if self.CurrentBlock:
                     if self.CurrentBlock.ElseBlock:
-                        self.CurrentBlock.ElseBlock.Functions.append(Function(bl, self.Values, self.CurrentAddress))
+                        self.CurrentBlock.ElseBlock.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
                     else:
-                        self.CurrentBlock.Functions.append(Function(bl, self.Values, self.CurrentAddress))
+                        self.CurrentBlock.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
                 else:
-                    self.Functions.append(Function(bl, self.Values, self.CurrentAddress))
+                    self.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
                 self.Values = []
             else:
                 if self.CurrentBlock:
                     if self.CurrentBlock.ElseBlock:
-                        self.CurrentBlock.ElseBlock.Functions.append(Function(bl, self.PrevStack, self.CurrentAddress))
+                        self.CurrentBlock.ElseBlock.Functions.append(Function(bl.name, self.PrevStack, self.CurrentAddress))
                     else:
-                        self.CurrentBlock.Functions.append(Function(bl, self.PrevStack, self.CurrentAddress))
+                        self.CurrentBlock.Functions.append(Function(bl.name, self.PrevStack, self.CurrentAddress))
                 else:
-                    self.Functions.append(Function(bl, self.PrevStack, self.CurrentAddress))
+                    self.Functions.append(Function(bl.name, self.PrevStack, self.CurrentAddress))
                 self.PrevStack = []
         
     def parse_b_le(self, b_le):
@@ -680,7 +674,7 @@ class SubScript:
                 self.parse_add(val)
             elif instr == 'bl':
                 addr = int(val, 0)
-                m = methodInfo.get(addr, val)
+                m = methodInfo.get(addr, addr)
                 self.parse_bl(m)
             elif instr == 'b.le':
                 self.parse_b_le(val)
@@ -692,7 +686,7 @@ class SubScript:
                 self.parse_b_ne(val)
             elif instr == 'b':
                 addr = int(val, 0)
-                m = methodInfo.get(addr, val)
+                m = methodInfo.get(addr, addr)
                 self.parse_b(m)
             elif instr == 'tbz':
                 self.parse_tbz(val)

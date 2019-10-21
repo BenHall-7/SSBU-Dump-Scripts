@@ -113,7 +113,10 @@ class ParseAnimcmdList:
             self.AddArticle(register.value, b_eq)
 
     def parse_bl(self, bl):
-        if "::Hash40" in bl:
+        if type(bl) is int:
+            text = self.r2.cmdJ("s {0};af;pdfj".format(bl))
+            self.Subscript = ParseAnimcmdList(self.r2, text, self.Sections)
+        elif "::Hash40" in bl.demname:
             if not self.hasIssue:
                 px1 = next((x for x in self.Registers if x.register == "x1"), None)
                 px2 = next((x for x in self.Registers if x.register == "x2"), None)
@@ -121,9 +124,6 @@ class ParseAnimcmdList:
                     self.Hashes.append(ScriptHash(Hash40(hex(px2.value)), px1.value))
             else:
                 self.hasIssue = False
-        elif "0x" in bl:
-            text = self.r2.cmdJ("s {0};af;pdfj".format(bl))
-            self.Subscript = ParseAnimcmdList(self.r2, text, self.Sections)
 
     def parse_b_le(self, b_le):
         p = "x9"
@@ -175,7 +175,7 @@ class ParseAnimcmdList:
                 self.parse_add(val)
             elif instr == 'bl':
                 addr = int(val, 0)
-                m = methodInfo.get(addr, val)
+                m = methodInfo.get(addr, addr)
                 self.parse_bl(m)
             elif instr == 'b.le':
                 self.parse_b_le(val)
