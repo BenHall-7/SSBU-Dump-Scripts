@@ -364,7 +364,7 @@ class SubScript:
             self.Values.append(Value(Hash40(hex(register.value)), 'hash40'))
         elif bl.demname == 'app::sv_animcmd::is_excute(lua_State*)':
             self.Values.append(Value('app::sv_animcmd::is_excute(lua_State*)', 'function'))
-        elif bl.demname == 'lib::L2CValue::operatorbool()const':
+        elif bl.demname == 'lib::L2CValue::operator bool() const':
             if self.CurrentBlock:
                 if self.CurrentBlock.ElseBlock:
                     self.CurrentBlock.ElseBlock.Functions.append(Function(bl.name, self.Values, self.CurrentAddress))
@@ -389,11 +389,11 @@ class SubScript:
         elif bl.demname == 'lib::L2CAgent::clear_lua_stack()':
             self.PrevStack = self.Values
             self.Values = []
-        elif bl.demname == 'lib::L2CValue::as_integer()const':
+        elif bl.demname == 'lib::L2CValue::as_integer() const':
             self.CurrentValue = Value(self.CurrentValue, 'int')
-        elif bl.demname == 'lib::L2CValue::as_number()const':
+        elif bl.demname == 'lib::L2CValue::as_number() const':
             self.CurrentValue = Value(self.CurrentValue, 'float')
-        elif bl.demname == 'lib::L2CValue::as_bool()const':
+        elif bl.demname == 'lib::L2CValue::as_bool() const':
             self.CurrentValue = Value(self.CurrentValue, 'bool')
         elif bl.demname == 'lib::L2CValue::L2CValue(long)':
             #self.CurrentValue = Value(self.CurrentValue, 'long')
