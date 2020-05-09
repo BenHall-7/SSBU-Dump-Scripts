@@ -306,7 +306,7 @@ class SubScript:
         if type(b) is int:
             if self.CurrentBlock:
                 self.CurrentBlock.ElseBlock = ElseBlock(b, self.CurrentAddress)
-        elif b.demname == 'app::sv_animcmd::ATTACK(lua_State*)' or b.demname == 'app::sv_animcmd::ATTACK_ABS(lua_State*)' or b.demname == 'app::sv_animcmd::SEARCH(lua_State*)':
+        else:
             if self.CurrentBlock:
                 if self.CurrentBlock.ElseBlock:
                     self.CurrentBlock.ElseBlock.Functions.append(Function(b.name, self.PrevStack, self.CurrentAddress))
