@@ -3,15 +3,14 @@ Script to dump and parse character game animcmd scripts programatically using r2
 
 ## Requirements
 * Python 3
-* Radare2
-* pip install r2pipe=1.2.0
+* Recent version of radare2 (online)
+* Recent version of r2pipe (`pip install r2pipe`)
 
 ## Usage
+
 ```
 python main.py ".elf path" (-p)
 python main.py "directory with .elf files" (-p)
 ```
 
-## To do
-* Add missing script and article names
-* Fix issues on parser [More details about issues](https://github.com/rubendal/SSBU-Dump-Scripts/projects/1)
+use the `-c` arg to specify a script category, such as `-c effect`
